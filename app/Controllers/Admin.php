@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-class Home extends BaseController
+class Admin extends BaseController
 {
     public function index()
     {
@@ -11,6 +11,6 @@ class Home extends BaseController
             'validation' => \Config\Services::validation()
         ];
 
-        return view('admin/index');
+        return view('admin/index', $data);
     }
 }
