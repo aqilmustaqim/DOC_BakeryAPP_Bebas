@@ -18,6 +18,20 @@ class Auth extends BaseController
 
     public function index()
     {
+
+        //cek status login
+        if (session()->has('logged_in')) {
+            //Kalau Ada Session Loginnya 
+            //Cek Rolenya apa
+            if (session()->get('role_id') == 1) {
+                //Kalau rolenya 1 tendang ke admin
+                return redirect()->to(base_url('admin'));
+            } else if (session()->get('role_id') == 2) {
+                //Kalau rolenya 2 tendang ke kasir
+                return redirect()->to(base_url('kasir'));
+            }
+        }
+
         //Membuat Array Data Untuk Dikirim keparameter view
         $data = [
             'title' => 'BakeryAPP || Login',
