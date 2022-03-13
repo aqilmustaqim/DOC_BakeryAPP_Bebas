@@ -124,4 +124,18 @@ class Auth extends BaseController
             echo 'berhasil ygy';
         }
     }
+
+    public function logout()
+    {
+        //Hapus Session
+        //1. Buat array data session
+        $dataSession = [
+            'nama',
+            'username',
+            'role_id',
+            'logged_in'
+        ];
+        session()->remove($dataSession); // Hapus session
+        return redirect()->to(base_url()); // Arahkan Ke login
+    }
 }
