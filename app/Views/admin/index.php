@@ -23,8 +23,7 @@
                             </span>
                             <div class="media-body text-white text-right">
                                 <p class="mb-1">Total Produk</p>
-                                <h3 class="text-white"><? //= $produk; 
-                                                        ?></h3>
+                                <h3 class="text-white"><?= $produk; ?></h3>
                             </div>
                         </div>
                     </div>
@@ -39,8 +38,7 @@
                             </span>
                             <div class="media-body text-white text-right">
                                 <p class="mb-1"> Penjualan</p>
-                                <h3 class="text-white"><? //= $penjualan; 
-                                                        ?></h3>
+                                <h3 class="text-white"><?= $penjualan; ?></h3>
                             </div>
                         </div>
                     </div>
@@ -55,8 +53,7 @@
                             </span>
                             <div class="media-body text-white text-right">
                                 <p class="mb-1">Kategori</p>
-                                <h3 class="text-white"><? //= $kategori; 
-                                                        ?></h3>
+                                <h3 class="text-white"><?= $kategori; ?></h3>
                             </div>
                         </div>
                     </div>
@@ -71,8 +68,7 @@
                             </span>
                             <div class="media-body text-white text-right">
                                 <p class="mb-1">Total Users</p>
-                                <h3 class="text-white"><? //= $users; 
-                                                        ?></h3>
+                                <h3 class="text-white"><?= $users; ?></h3>
                             </div>
                         </div>
                     </div>
@@ -88,8 +84,7 @@
                             </span>
                             <div class="media-body text-white text-right">
                                 <p class="mb-1">Admin</p>
-                                <h3 class="text-white"><? //= $admin; 
-                                                        ?></h3>
+                                <h3 class="text-white"><?= $admin; ?></h3>
                             </div>
                         </div>
                     </div>
@@ -104,8 +99,7 @@
                             </span>
                             <div class="media-body text-white text-right">
                                 <p class="mb-1">Kasir</p>
-                                <h3 class="text-white"><? //= $kasir; 
-                                                        ?></h3>
+                                <h3 class="text-white"><?= $kasir; ?></h3>
                             </div>
                         </div>
                     </div>
@@ -121,8 +115,7 @@
                             </span>
                             <div class="media-body text-white">
                                 <p class="mb-1">Penjualan <?= date('M'); ?></p>
-                                <h3 class="text-white" style="font-size: 20pt;"><? //= number_format($totalpenjualanbulanan); 
-                                                                                ?></h3>
+                                <h3 class="text-white" style="font-size: 20pt;"><?= number_format($totalpenjualanbulanan); ?></h3>
 
                             </div>
                         </div>
@@ -139,8 +132,7 @@
                             </span>
                             <div class="media-body text-white">
                                 <p class="mb-1">Penjualan <?= date('Y'); ?></p>
-                                <h3 class="text-white" style="font-size: 20pt;"><? //= number_format($totalpenjualantahunan); 
-                                                                                ?></h3>
+                                <h3 class="text-white" style="font-size: 20pt;"><?= number_format($totalpenjualantahunan); ?></h3>
 
                             </div>
                         </div>
@@ -158,28 +150,23 @@
                     </div>
                     <div class="card-body orders-summary">
                         <div class="d-flex order-manage p-3 align-items-center mb-4">
-                            <h4 class="mb-0" style="font-size: 25pt; font-weight: bold; text-align: center;">Rp. <? //= number_format($totalpenjualan); 
-                                                                                                                    ?></h4>
+                            <h4 class="mb-0" style="font-size: 25pt; font-weight: bold; text-align: center;">Rp. <?= number_format($totalpenjualan); ?></h4>
                         </div>
                         <hr>
                         <!-- Isi Riwayat Transaksi -->
-                        <?php //$nomor = 1; 
+                        <?php $nomor = 1;
                         ?>
-                        <?php //foreach ($datapenjualan as $dp) : 
+                        <?php foreach ($datapenjualan as $dp) :
                         ?>
-                        <div class="media items-list-1">
-                            <span class="number col-1 px-0 align-self-center"><? //= $nomor++; 
-                                                                                ?></span>
+                            <div class="media items-list-1">
+                                <span class="number col-1 px-0 align-self-center"><?= $nomor++; ?></span>
 
-                            <div class="media-body col-sm-4 col-6 col-xxl-6 px-0">
-                                <h5 class="mt-0 mb-0 text-red"><? //= $dp['invoice']; 
-                                                                ?></h5>
-                                <small class="text-primary font-w500"><strong class="text-secondary mr-2">Rp. <? //= number_format($dp['total']); 
-                                                                                                                ?></strong> - <? //= $dp['kasir']; 
-                                                                                                                                ?> </small>
+                                <div class="media-body col-sm-4 col-6 col-xxl-6 px-0">
+                                    <h5 class="mt-0 mb-0 text-red"><?= $dp['invoice']; ?></h5>
+                                    <small class="text-primary font-w500"><strong class="text-secondary mr-2">Rp. <?= number_format($dp['total']); ?></strong> - <?= $dp['kasir']; ?> </small>
+                                </div>
                             </div>
-                        </div>
-                        <?php //endforeach; 
+                        <?php endforeach;
                         ?>
 
 
@@ -197,37 +184,31 @@
 
                     </div>
                     <div class="card-body p-0 pt-3">
-                        <?php //$nomor = 1; 
+                        <?php $nomor = 1;
                         ?>
-                        <?php //foreach ($produkterbanyak as $pt) : 
+                        <?php foreach ($produkterbanyak as $pt) :
                         ?>
 
-                        <div class="media items-list-1">
-                            <span class="number col-1 px-0 align-self-center"><? //= $nomor++; 
-                                                                                ?></span>
-                            <img class="img-fluid rounded mr-3" width="85" height="85" src="<? //= base_url('assets/images/product'); 
-                                                                                            ?>/<? //= $pt['foto_produk']; 
-                                                                                                ?>" alt="DexignZone">
-                            <div class="media-body col-sm-4 col-6 col-xxl-6 px-0">
-                                <h5 class="mt-0 mb-3 text-black"><? //= $pt['nama_produk']; 
-                                                                    ?></h5>
-                                <small class="text-primary font-w500"><strong class="text-secondary mr-2"><? //= number_format($pt['harga_produk']); 
-                                                                                                            ?></strong> </small>
-                            </div>
-                            <div class="media-footer ml-auto col-3 px-0 d-flex align-self-center align-items-center">
-                                <div class="mr-3">
-                                    <span class="peity-success" data-style="width:100%;" style="display: none;">0,2,1,4</span><svg class="peity" height="30" width="47">
-                                        <polygon fill="rgba(48, 194, 89, .2)" points="0 28.5 0 28.5 15.666666666666666 15 31.333333333333332 21.75 47 1.5 47 28.5"></polygon>
-                                        <polyline fill="none" points="0 28.5 15.666666666666666 15 31.333333333333332 21.75 47 1.5" stroke="#30c259" stroke-width="3" stroke-linecap="square"></polyline>
-                                    </svg>
+                            <div class="media items-list-1">
+                                <span class="number col-1 px-0 align-self-center"><?= $nomor++; ?></span>
+                                <img class="img-fluid rounded mr-3" width="85" height="85" src="<?= base_url('assets/images/product'); ?>/<?= $pt['foto_produk']; ?>" alt="DexignZone">
+                                <div class="media-body col-sm-4 col-6 col-xxl-6 px-0">
+                                    <h5 class="mt-0 mb-3 text-black"><?= $pt['nama_produk']; ?></h5>
+                                    <small class="text-primary font-w500"><strong class="text-secondary mr-2"><?= number_format($pt['harga_produk']); ?></strong> </small>
                                 </div>
-                                <div>
-                                    <h3 class="mb-0 font-w600 text-black"><? //= $pt['jumlah_terjual']; 
-                                                                            ?></h3>
+                                <div class="media-footer ml-auto col-3 px-0 d-flex align-self-center align-items-center">
+                                    <div class="mr-3">
+                                        <span class="peity-success" data-style="width:100%;" style="display: none;">0,2,1,4</span><svg class="peity" height="30" width="47">
+                                            <polygon fill="rgba(48, 194, 89, .2)" points="0 28.5 0 28.5 15.666666666666666 15 31.333333333333332 21.75 47 1.5 47 28.5"></polygon>
+                                            <polyline fill="none" points="0 28.5 15.666666666666666 15 31.333333333333332 21.75 47 1.5" stroke="#30c259" stroke-width="3" stroke-linecap="square"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="mb-0 font-w600 text-black"><?= $pt['jumlah_terjual']; ?></h3>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <?php //endforeach; 
+                        <?php endforeach;
                         ?>
 
                     </div>
