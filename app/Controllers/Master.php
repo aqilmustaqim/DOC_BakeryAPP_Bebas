@@ -2,8 +2,38 @@
 
 namespace App\Controllers;
 
+use App\Database\Migrations\UserRole;
+use \App\Models\UsersModel; // Memanggil User Model Dari Class Model
+use \App\Models\UserRoleModel;
+use \App\Models\KategoriModel;
+use \App\Models\SatuanModel;
+use \App\Models\ProdukModel;
+use \App\Models\KasKeluarModel;
+use TCPDF;
+
 class Master extends BaseController
 {
+
+    //Membuat Variabel Untuk Menampung UsersModel
+    protected $usersModel;
+    protected $userRole;
+    protected $kategoriModel;
+    protected $satuanModel;
+    protected $produkModel;
+    protected $kasKeluarModel;
+
+    public function __construct()
+    {
+        //Masukkan Users Model Ke Dalam Variabel
+        $this->usersModel = new UsersModel();
+        $this->userRole = new UserRoleModel();
+        $this->kategoriModel = new KategoriModel();
+        $this->satuanModel = new SatuanModel();
+        $this->produkModel = new ProdukModel();
+        $this->kasKeluarModel = new KasKeluarModel();
+    }
+
+
 
     public function produk()
     {
