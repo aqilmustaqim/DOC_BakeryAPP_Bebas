@@ -33,7 +33,29 @@ class Master extends BaseController
         $this->kasKeluarModel = new KasKeluarModel();
     }
 
+    public function kategori()
+    {
+        //Cek Login
+        if (!session()->has('logged_in')) {
+            session()->setFlashdata('login', 'Silahkan Login Terlebih Dahulu !');
+            return redirect()->to(base_url());
+        } else {
+            if (session()->get('role_id') != 1) {
+                return redirect()->to(base_url('kasir'));
+            }
+        }
 
+        //Mengambil Semua Data Kategori
+        $kategori = $this->kategoriModel->findAll();
+
+        $data = [
+            'title' => 'PosCafe || Kategori',
+            'validation' => \Config\Services::validation(),
+            'kategori' => $kategori
+        ];
+
+        return view('master/kategori', $data);
+    }
 
     public function produk()
     {
