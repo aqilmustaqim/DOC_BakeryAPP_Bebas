@@ -137,26 +137,52 @@ class Master extends BaseController
 
     public function produk()
     {
-        //1.Cek Login
         if (!session()->has('logged_in')) {
-            //Jika tidak ada user yang login maka tendang
-            //Login Dulu Kau
-            session()->setFlashdata('login', 'Silahkan Login Terlebih Dahulu !'); //Buat FlashData
-            return redirect()->to(base_url()); // Arahkan ke halaman login
+            session()->setFlashdata('login', 'Silahkan Login Terlebih Dahulu !');
+            return redirect()->to(base_url());
         } else {
-            //Kalau sudah ada usernya cek apakah user itu admin ?
             if (session()->get('role_id') != 1) {
-                //Kalau role id nya bukan 1 alias bukan admin berarti dia kasir
-                return redirect()->to(base_url('kasir')); // Arahkan ke halaman kasir
+                return redirect()->to(base_url('kasir'));
             }
         }
-        //Membuat Halaman Utama Produk
+
+        //Query JOIN TABEL PRODUK DAN KATEGORI
+        $db      = \Config\Database::connect();
+        $builder = $db->table('produk');
+        $builder->select('produk.*, kategori.kategori');
+        $builder->join('kategori', 'produk.kategori_produk = kategori.id');
+        $query = $builder->get();
+        $produk = $query->getResultArray();
         $data = [
-            'title' => 'BakeryAPP || Produk',
-            'validation' => \Config\Services::validation()
+            'title' => 'PosCafe || Produk',
+            'validation' => \Config\Services::validation(),
+            'produk' => $produk
         ];
 
-        //Arahkan Ke Views Produk
         return view('master/produk', $data);
+    }
+
+    public function formProduk()
+    {
+        if (!session()->has('logged_in')) {
+            session()->setFlashdata('login', 'Silahkan Login Terlebih Dahulu !');
+            return redirect()->to(base_url());
+        } else {
+            if (session()->get('role_id') != 1) {
+                return redirect()->to(base_url('kasir'));
+            }
+        }
+
+        $satuan = $this->satuanModel->findAll();
+        $kategori = $this->kategoriModel->findAll();
+
+        $data = [
+            'title' => 'PosCafe || Form Produk',
+            'validation' => \Config\Services::validation(),
+            'kategori' => $kategori,
+            'satuan' => $satuan
+        ];
+
+        return view('master/formProduk', $data);
     }
 }
