@@ -78,6 +78,63 @@ class Master extends BaseController
         }
     }
 
+    public function satuan()
+    {
+        if (!session()->has('logged_in')) {
+            session()->setFlashdata('login', 'Silahkan Login Terlebih Dahulu !');
+            return redirect()->to(base_url());
+        } else {
+            if (session()->get('role_id') != 1) {
+                return redirect()->to(base_url('kasir'));
+            }
+        }
+
+        $satuan = $this->satuanModel->findAll();
+
+        $data = [
+            'title' => 'PosCafe || Kategori',
+            'validation' => \Config\Services::validation(),
+            'satuan' => $satuan
+        ];
+
+        return view('master/satuan', $data);
+    }
+
+    public function tambahSatuan()
+    {
+        //Ambil Data Yang Dikirim Ajax
+        $satuan = $this->request->getVar('satuan');
+
+        //Masukkan Ke Dalam Database
+        if ($this->satuanModel->save([
+            'satuan' => $satuan
+        ])) {
+            echo '1';
+        }
+    }
+
+    public function ubahSatuan()
+    {
+        //Ambil Data Yang Dikirim Ajax
+        $id = $this->request->getVar('id');
+        $satuan = $this->request->getVar('satuan');
+
+        //Ubah Database
+        if ($this->satuanModel->save([
+            'id' => $id,
+            'satuan' => $satuan
+        ])) {
+            echo '1';
+        }
+    }
+
+    public function hapusSatuan($id)
+    {
+        if ($this->satuanModel->delete($id)) {
+            return redirect()->to(base_url('master/satuan'));
+        }
+    }
+
     public function produk()
     {
         //1.Cek Login
