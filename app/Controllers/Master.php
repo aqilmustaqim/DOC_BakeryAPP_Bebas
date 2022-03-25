@@ -49,7 +49,7 @@ class Master extends BaseController
         $kategori = $this->kategoriModel->findAll();
 
         $data = [
-            'title' => 'PosCafe || Kategori',
+            'title' => 'BakeryAPP || Kategori',
             'validation' => \Config\Services::validation(),
             'kategori' => $kategori
         ];
@@ -92,7 +92,7 @@ class Master extends BaseController
         $satuan = $this->satuanModel->findAll();
 
         $data = [
-            'title' => 'PosCafe || Kategori',
+            'title' => 'BakeryAPP || Kategori',
             'validation' => \Config\Services::validation(),
             'satuan' => $satuan
         ];
