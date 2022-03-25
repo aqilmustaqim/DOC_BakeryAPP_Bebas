@@ -57,6 +57,27 @@ class Master extends BaseController
         return view('master/kategori', $data);
     }
 
+    public function tambahKategori()
+    {
+        //Tangkap Data
+        $kategori = $this->request->getVar('kategori');
+
+        //Masukkan Ke Database 
+        if ($this->kategoriModel->save([
+            'kategori' => $kategori
+        ])) {
+            echo '1';
+        }
+    }
+
+    public function hapusKategori($id)
+    {
+        //Hapus
+        if ($this->kategoriModel->delete($id)) {
+            return redirect()->to(base_url('master/kategori'));
+        }
+    }
+
     public function produk()
     {
         //1.Cek Login
