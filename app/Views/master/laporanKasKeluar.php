@@ -20,7 +20,7 @@
 </head>
 
 <body>
-    <div style="font-size:35px; font-family: Verdana, Geneva, Tahoma, sans-serif; text-align: center; text-shadow: black; font-weight: bold;">TAM^FAN CAFE</div>
+    <div style="font-size:35px; font-family: Verdana, Geneva, Tahoma, sans-serif; text-align: center; text-shadow: black; font-weight: bold;">Bakery APP</div>
     <hr>
     <div style="text-align: center;">
         <h1><i>Laporan Kas Keluar</i></h1><br>
