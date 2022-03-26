@@ -66,4 +66,177 @@ class Penjualan extends BaseController
         $noinvoice = "TRX" . date('dmy', strtotime($tanggal)) . sprintf('%05s', $next);
         return $noinvoice;
     }
+
+    public function detailPenjualan()
+    {
+        //Ambil Invoice Yang Dikirim AJAX
+        $invoice = $this->request->getPost('invoice');
+
+        $db      = \Config\Database::connect();
+        $builder = $db->table('temp_penjualan');
+        $builder->select('temp_penjualan.id as id_penjualan,temp_penjualan.kode_produk,harga_produk,nama_produk,jumlah,subtotal');
+        $builder->join('produk', 'temp_penjualan.kode_produk = produk.kode_produk');
+        $builder->where('invoice', $invoice);
+        $builder->orderBy('temp_penjualan.id', 'asc');
+        $query = $builder->get();
+        $hasil = $query->getResultArray();
+
+        $data = [
+            'detail' => $hasil
+        ];
+
+        $msg = [
+            'data' => view('penjualan/detailPenjualan', $data)
+        ];
+
+        echo json_encode($msg);
+    }
+
+    public function dataProduk()
+    {
+        //Ambil Data Produk JOIN dengan Kategori Produk
+        $db      = \Config\Database::connect();
+        $builder = $db->table('produk');
+        $builder->select('produk.id,kode_produk,nama_produk,kategori_produk,kategori,stok_produk');
+        $builder->join('kategori', 'produk.kategori_produk = kategori.id');
+        $builder->where('stok_produk', 1);
+        $query = $builder->get();
+        $hasil = $query->getResultArray();
+        $data = [
+            'produk' => $hasil
+        ];
+        if ($this->request->isAJAX()) {
+            //Arahkan Ke View Data Produk
+            $msg = [
+                'viewmodal' => view('penjualan/dataProduk', $data)
+            ];
+            echo json_encode($msg);
+        }
+    }
+
+    public function dataProduk2()
+    {
+        $kodeproduk = $this->request->getPost('kodeproduk');
+        $namaproduk = $this->request->getPost('namaproduk');
+
+        //Ambil Data Produk JOIN dengan Kategori Produk
+        $db      = \Config\Database::connect();
+        $builder = $db->table('produk');
+        $builder->select('produk.id,kode_produk,nama_produk,kategori_produk,kategori,stok_produk');
+        $builder->join('kategori', 'produk.kategori_produk = kategori.id');
+        $builder->like('kode_produk', $kodeproduk);
+        $builder->orLike('nama_produk', $kodeproduk);
+        $query = $builder->get();
+        $hasil = $query->getResultArray();
+
+        $data = [
+            'produk' => $hasil
+        ];
+        if ($this->request->isAJAX()) {
+            //Arahkan Ke View Data Produk
+            $msg = [
+                'viewmodal' => view('penjualan/dataProduk', $data)
+            ];
+            echo json_encode($msg);
+        }
+    }
+
+    public function simpanTemp()
+    {
+        //Tangkap Data
+        $kodeproduk = $this->request->getPost('kodeproduk');
+        $namaproduk = $this->request->getPost('namaproduk');
+        $jumlah = $this->request->getPost('jumlah');
+        $invoice = $this->request->getPost('invoice');
+        //Ambil Harga Produknya Dulu
+        $infoProduk = $this->produkModel->where(['kode_produk' => $kodeproduk])->first();
+        $subtotal = floatval($infoProduk['harga_produk']) * $jumlah;
+        //Masukkan Ke Database
+        if ($this->tempPenjualanModel->save([
+            'invoice' => $invoice,
+            'kode_produk' => $kodeproduk,
+            'jumlah' => $jumlah,
+            'harga_beli' => $infoProduk['modal_produk'],
+            'harga_jual' => $infoProduk['harga_produk'],
+            'subtotal' => $subtotal
+        ])) {
+            echo "1";
+        }
+    }
+
+    public function tampilTotalBayar()
+    {
+
+        if ($this->request->isAJAX()) {
+            //Kalau ada request dari ajax
+            //Tangkap Data Yang Dikirim Ajax
+            $invoice = $this->request->getPost('invoice');
+
+            //Jalankan Query SUM untuk jumlah total detailpesanan
+            $db      = \Config\Database::connect();
+            $builder = $db->table('temp_penjualan');
+            $builder->select('SUM(subtotal) as totalbayar');
+            $builder->where('invoice', $invoice);
+            $query = $builder->get();
+            $hasil = $query->getRowArray();
+
+            $msg = [
+                'totalbayar' => number_format($hasil['totalbayar'], 0, ",", ".")
+            ];
+            echo json_encode($msg);
+        }
+    }
+
+    public function hapusItem()
+    {
+
+        if ($this->request->isAJAX()) {
+            //Kalau Ada Request Ajax
+            //Tangkap Data Dikirim Ajax
+            $id = $this->request->getPost('id');
+
+            //Hapus Data Produk Berdasarkan ID 
+            if ($this->tempPenjualanModel->delete($id)) {
+                echo "sukses";
+            }
+        }
+    }
+
+    public function simpanPenjualan()
+    {
+        //Ambil Data Ajax
+        $kasir  = $this->request->getPost('kasir');
+        $invoice = $this->request->getPost('invoice');
+        $pelanggan = $this->request->getPost('pelanggan');
+
+        //Cek Apakah Ada Data Detail Penjualannya ?
+        $isiTempPenjualan = $this->tempPenjualanModel->where(['invoice' => $invoice])->first();
+
+        //Jalankan Query SUM untuk jumlah total detailpesanan
+        $db      = \Config\Database::connect();
+        $builder = $db->table('temp_penjualan');
+        $builder->select('SUM(subtotal) as totalbayar');
+        $builder->where('invoice', $invoice);
+        $query = $builder->get();
+        $hasil = $query->getRowArray();
+
+
+        if ($isiTempPenjualan) {
+            //Arahkan Ke View Modal Pembayaran
+            //Query Total Bayar Dari Tabel TempPenjualan
+
+            $data = [
+                'totalbayar' => $hasil['totalbayar'],
+                'kasir' => $kasir,
+                'invoice' => $invoice,
+                'pelanggan' => $pelanggan
+
+            ];
+
+            $msg = [
+                'viewmodal' => view('penjualan/modalPembayaran', $data)
+            ];
+            echo json_encode($msg);
+        }
+    }
 }
