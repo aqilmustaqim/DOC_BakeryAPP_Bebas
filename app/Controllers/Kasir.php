@@ -26,7 +26,7 @@ class Kasir extends BaseController
 
 
         $data = [
-            'title' => 'PosCafe || Kasir',
+            'title' => 'BakeryAPP || Kasir',
             'penjualan' => $penjualan
         ];
 

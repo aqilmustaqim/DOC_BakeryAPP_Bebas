@@ -44,7 +44,7 @@ class Users extends BaseController
         $role = $this->userRole->findAll();
 
         $data = [
-            'title' => 'PosCafe || Data User',
+            'title' => 'BakeryAPP || Data User',
             'users' => $users,
             'role' => $role,
             'validation' => \Config\Services::validation()

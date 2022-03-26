@@ -154,7 +154,7 @@ class Master extends BaseController
         $query = $builder->get();
         $produk = $query->getResultArray();
         $data = [
-            'title' => 'PosCafe || Produk',
+            'title' => 'BakeryAPP || Produk',
             'validation' => \Config\Services::validation(),
             'produk' => $produk
         ];
@@ -177,7 +177,7 @@ class Master extends BaseController
         $kategori = $this->kategoriModel->findAll();
 
         $data = [
-            'title' => 'PosCafe || Form Produk',
+            'title' => 'BakeryAPP || Form Produk',
             'validation' => \Config\Services::validation(),
             'kategori' => $kategori,
             'satuan' => $satuan
@@ -264,7 +264,7 @@ class Master extends BaseController
 
 
         $data = [
-            'title' => 'PosCafe || Form Produk',
+            'title' => 'BakeryAPP || Form Produk',
             'validation' => \Config\Services::validation(),
             'kategori' => $kategori,
             'satuan' => $satuan,
@@ -371,7 +371,7 @@ class Master extends BaseController
 
 
         $data = [
-            'title' => 'PosCafe || Kas Keluar',
+            'title' => 'BakeryAPP || Kas Keluar',
             'validation' => \Config\Services::validation(),
             'kasKeluar' => $kasKeluar
         ];
@@ -452,7 +452,7 @@ class Master extends BaseController
             $pdf->SetSubject('Laporan Penjualan');
 
             //Header Dan Footer Data
-            //$pdf->setHeaderData('/assets/images/1.jpg', 1, 'PosCafe', 'JL. Gaperta No 433', array(48, 89, 112), array(48, 89, 112));
+            //$pdf->setHeaderData('/assets/images/1.jpg', 1, 'BakeryAPP', 'JL. Gaperta No 433', array(48, 89, 112), array(48, 89, 112));
             //$pdf->setFooterData(array(0, 0, 0), array(0, 0, 0));
             //$pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
             //$pdf->setFooterFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
