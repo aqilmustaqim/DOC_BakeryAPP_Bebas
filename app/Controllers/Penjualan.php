@@ -239,4 +239,253 @@ class Penjualan extends BaseController
             echo json_encode($msg);
         }
     }
+
+    public function simpanPembayaran()
+    {
+
+        //Tangkap Data nya
+        $invoice = $this->request->getPost('invoice');
+        $pelanggan = $this->request->getPost('pelanggan');
+        $kasir = $this->request->getPost('kasir');
+        $total =  str_replace(",", "", $this->request->getPost('total_pembayaran'));
+        $jumlahUang =  str_replace(",", "", $this->request->getPost('jumlah_uang'));
+        $sisaUang =  str_replace(",", "", $this->request->getPost('sisa_uang'));
+
+
+
+        //Masukkan Ke Database Penjualan
+        if ($this->penjualanModel->save([
+            'invoice' => $invoice,
+            'tanggal' => date('Y-m-d H:i:s'),
+            'pelanggan' => $pelanggan,
+            'kasir' => $kasir,
+            'jumlah_uang' => $jumlahUang,
+            'sisa_uang' => $sisaUang,
+            'total' => $total
+        ])) {
+            // 	//Kalau Berhasil
+            // 	//Masukkan Ke Database Penjualan Detail Dari Tabel Temp
+            $db      = \Config\Database::connect();
+            $builder = $db->table('temp_penjualan');
+            $builder->where('invoice', $invoice);
+            $query = $builder->get();
+            $isiTempPenjualan = $query->getResultArray();
+
+            $DetailPenjualan = [];
+            foreach ($isiTempPenjualan as $row) {
+                $DetailPenjualan[] = [
+                    'invoice' => $row['invoice'],
+                    'kode_produk' => $row['kode_produk'],
+                    'harga_beli' => $row['harga_beli'],
+                    'harga_jual' => $row['harga_jual'],
+                    'jumlah' => $row['jumlah'],
+                    'subtotal' => $row['subtotal'],
+                ];
+            }
+            $db      = \Config\Database::connect();
+            $builder = $db->table('penjualan_detail');
+            $builder->insertBatch($DetailPenjualan);
+
+            //Hapus Temp
+            $db      = \Config\Database::connect();
+            $builder = $db->table('temp_penjualan');
+            $builder->emptyTable();
+
+            //Masukkan Data Penjualan Ke Session Untuk Di Cetak Ke Struk
+            $dataPenjualan = [
+                'invoice' => $invoice,
+                'pelanggan' => $pelanggan,
+                'kasir' => $kasir,
+                'total' => $total,
+                'jumlah_uang' => $jumlahUang,
+                'sisa_uang' => $sisaUang
+            ];
+            session()->set($dataPenjualan);
+
+            echo 'berhasil';
+        }
+    }
+
+    public function hapusPenjualan($id)
+    {
+
+        $dataPenjualan = $this->penjualanModel->where(['id' => $id])->first();
+        //Hapus Data Yang Ada Di Tabel Penjualan
+        $this->penjualanModel->delete($id);
+        //Hapus Data Yang Ada Di Tabel Detail Penjualan Berdasarkan Invoice Dari Id yang dipilih
+        $db      = \Config\Database::connect();
+        $builder = $db->table('penjualan_detail');
+        $builder->delete(['invoice' => $dataPenjualan['invoice']]);
+
+        return redirect()->to(base_url('penjualan/dataPenjualan'));
+    }
+
+    public function dataPenjualan()
+    {
+        //cek status login
+        if (!session()->has('logged_in')) {
+            session()->setFlashdata('login', 'Silahkan Login Terlebih Dahulu !');
+            return redirect()->to(base_url());
+        }
+
+        helper('helper_aqil');
+
+        //Ambil Data Penjualan
+        $dataPenjualan = $this->penjualanModel->findAll();
+
+        $data = [
+            'title' => 'BakeryAPP || Data Penjualan',
+            'dataPenjualan' => $dataPenjualan
+        ];
+
+        return view('penjualan/dataPenjualan', $data);
+    }
+    public function laporanPenjualan()
+    {
+
+        //Ambil Data Tanggal Cetak
+        $tanggalAwal = $this->request->getPost('tanggal_cetak');
+        $tanggalAkhir = $this->request->getPost('tanggal_akhir');
+
+        $db      = \Config\Database::connect();
+        $builder = $db->table('penjualan');
+        $builder->where('tanggal >=', $tanggalAwal);
+        $builder->where('tanggal <=', $tanggalAkhir);
+        $query = $builder->get();
+        $laporanPenjualan = $query->getResultArray();
+
+        //Menghitung Total Penjualan Pada Tanggal Tersebut
+        $db      = \Config\Database::connect();
+        $builder = $db->table('penjualan');
+        $builder->select('SUM(total) as totalpenjualan');
+        $builder->where('tanggal >=', $tanggalAwal);
+        $builder->where('tanggal <=', $tanggalAkhir);
+        $query = $builder->get();
+        $hasil = $query->getRowArray();
+        $totalPenjualan = $hasil['totalpenjualan'];
+
+
+        if ($laporanPenjualan) {
+
+            //Jika ada datanya maka cetak pdf nya
+            $data = [
+                'laporan' => $laporanPenjualan,
+                'tanggalawal' => $tanggalAwal,
+                'tanggalakhir' => $tanggalAkhir,
+                'total_penjualan' => $totalPenjualan
+            ];
+            $html = view('penjualan/laporanPenjualan', $data);
+
+            //$pdf = new TCPDF('P', 'mm', array('58', '30'), true, 'UTF-8', false);
+            //$pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+
+            $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+            //Informasi Dokumen
+            $pdf->SetCreator(PDF_CREATOR);
+            $pdf->SetAuthor('Aqil Mustaqim');
+            $pdf->SetTitle('Laporan Penjualan');
+            $pdf->SetSubject('Laporan Penjualan');
+
+            //Header Dan Footer Data
+            //$pdf->setHeaderData('/assets/images/1.jpg', 1, 'BakeryAPP', 'JL. Gaperta No 433', array(48, 89, 112), array(48, 89, 112));
+            //$pdf->setFooterData(array(0, 0, 0), array(0, 0, 0));
+            //$pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+            //$pdf->setFooterFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+
+            //$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+            //Set Margin
+            //$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+            //$pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+            //$pdf->setFooterMargin(PDF_MARGIN_FOOTER);
+
+            //Baris Baru
+            //$pdf->SetAutoPageBreak(true, PDF_MARGIN_BOTTOM);
+
+            //Set Scaling Image
+            //$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+
+            //Font Subsetting
+            //$pdf->setFontSubsetting(true);
+
+            //Font Utama
+            //$pdf->SetFont('helvetica', '', 12, '', true);
+
+            $pdf->addPage();
+
+            // output the HTML content
+            //$pdf->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+
+            $pdf->writeHTML($html, true, false, true, false, '');
+            //$pdf->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+            //$pdf->writeHTML($html, true, false, true, false, '');
+            //line ini penting
+            $this->response->setContentType('application/pdf');
+            //Close and output PDF document
+            $pdf->Output('laporan-penjualan.pdf', 'D');
+        } else {
+            //Jika data nya gak ada kirimkan pesan kosong
+            echo "kosong";
+        }
+    }
+
+    public function laporanPengeluaran()
+    {
+
+        //Jika ada datanya maka cetak pdf nya
+        $data = [];
+        $html = view('penjualan/laporanPengeluaran');
+
+        //$pdf = new TCPDF('P', 'mm', array('58', '30'), true, 'UTF-8', false);
+        //$pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+
+        $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+        //Informasi Dokumen
+        $pdf->SetCreator(PDF_CREATOR);
+        $pdf->SetAuthor('Aqil Mustaqim');
+        $pdf->SetTitle('Laporan Penjualan');
+        $pdf->SetSubject('Laporan Penjualan');
+
+        //Header Dan Footer Data
+        //$pdf->setHeaderData('/assets/images/1.jpg', 1, 'BakeryAPP', 'JL. Gaperta No 433', array(48, 89, 112), array(48, 89, 112));
+        //$pdf->setFooterData(array(0, 0, 0), array(0, 0, 0));
+        //$pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+        //$pdf->setFooterFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        //$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+        //Set Margin
+        //$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+        //$pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+        //$pdf->setFooterMargin(PDF_MARGIN_FOOTER);
+
+        //Baris Baru
+        //$pdf->SetAutoPageBreak(true, PDF_MARGIN_BOTTOM);
+
+        //Set Scaling Image
+        //$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+
+        //Font Subsetting
+        //$pdf->setFontSubsetting(true);
+
+        //Font Utama
+        //$pdf->SetFont('helvetica', '', 12, '', true);
+
+        $pdf->addPage();
+
+        // output the HTML content
+        //$pdf->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+
+        $pdf->writeHTML($html, true, false, true, false, '');
+        //$pdf->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+        //$pdf->writeHTML($html, true, false, true, false, '');
+        //line ini penting
+        $this->response->setContentType('application/pdf');
+        //Close and output PDF document
+        $pdf->Output('LaporanPengeluaran.pdf', 'I');
+    }
 }
