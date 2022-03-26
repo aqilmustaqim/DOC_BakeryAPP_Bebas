@@ -355,4 +355,52 @@ class Master extends BaseController
             return redirect()->to(base_url('master/produk'));
         }
     }
+
+    public function kasKeluar()
+    {
+        if (!session()->has('logged_in')) {
+            session()->setFlashdata('login', 'Silahkan Login Terlebih Dahulu !');
+            return redirect()->to(base_url());
+        } else {
+            if (session()->get('role_id') != 1) {
+                return redirect()->to(base_url('kasir'));
+            }
+        }
+
+        $kasKeluar = $this->kasKeluarModel->findAll();
+
+
+        $data = [
+            'title' => 'PosCafe || Kas Keluar',
+            'validation' => \Config\Services::validation(),
+            'kasKeluar' => $kasKeluar
+        ];
+
+        return view('master/kasKeluar', $data);
+    }
+
+    public function tambahKasKeluar()
+    {
+        //Tangkap Data
+        $keterangan = $this->request->getVar('keterangan');
+        $tanggal = $this->request->getVar('tanggal');
+        $nominal = $this->request->getVar('nominal');
+
+        //Masukkan Ke Database 
+        if ($this->kasKeluarModel->save([
+            'keterangan' => $keterangan,
+            'tanggal' => $tanggal,
+            'nominal' => str_replace(',', '', $nominal)
+        ])) {
+            echo '1';
+        }
+    }
+
+    public function hapusKasKeluar($id)
+    {
+        //Hapus
+        if ($this->kasKeluarModel->delete($id)) {
+            return redirect()->to(base_url('master/kasKeluar'));
+        }
+    }
 }
