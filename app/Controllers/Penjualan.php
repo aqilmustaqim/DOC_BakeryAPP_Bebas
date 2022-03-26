@@ -328,7 +328,7 @@ class Penjualan extends BaseController
             return redirect()->to(base_url());
         }
 
-        helper('helper_aqil');
+        helper('aqil_helper');
 
         //Ambil Data Penjualan
         $dataPenjualan = $this->penjualanModel->findAll();
