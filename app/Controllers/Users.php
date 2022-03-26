@@ -70,4 +70,28 @@ class Users extends BaseController
             return redirect()->to(base_url('users'));
         }
     }
+
+    public function hapusData($id)
+    {
+        //Hapus Data Berdasarkan ID
+        if ($this->usersModel->delete($id)) {
+            session()->setFlashdata('users', 'Dihapuskan');
+            return redirect()->to(base_url('users'));
+        }
+    }
+
+    public function ubahData($id)
+    {
+        if ($this->usersModel->save([
+            'id' => $id,
+            'nama' => $this->request->getVar('nama'),
+            'email' => $this->request->getVar('email'),
+            'username' => $this->request->getVar('username'),
+            'role_id' => $this->request->getVar('role')
+        ])) {
+            //Kasih Flash Message
+            session()->setFlashdata('users', 'Diubah');
+            return redirect()->to(base_url('users'));
+        }
+    }
 }
