@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use TCPDF;
 use App\Database\Migrations\UserRole;
 use \App\Models\UsersModel; // Memanggil User Model Dari Class Model
 use \App\Models\UserRoleModel;
@@ -9,7 +10,6 @@ use \App\Models\KategoriModel;
 use \App\Models\SatuanModel;
 use \App\Models\ProdukModel;
 use \App\Models\KasKeluarModel;
-use TCPDF;
 
 class Master extends BaseController
 {
@@ -401,6 +401,98 @@ class Master extends BaseController
         //Hapus
         if ($this->kasKeluarModel->delete($id)) {
             return redirect()->to(base_url('master/kasKeluar'));
+        }
+    }
+    public function laporanKasKeluar()
+    {
+
+        //Ambil Data Tanggal Cetak
+        $tanggalAwal = $this->request->getPost('tanggal_awal');
+        $tanggalAkhir = $this->request->getPost('tanggal_akhir');
+
+        //Query Database
+        $db      = \Config\Database::connect();
+        $builder = $db->table('kas_keluar');
+        $builder->where('tanggal >=', $tanggalAwal);
+        $builder->where('tanggal <=', $tanggalAkhir);
+        $query = $builder->get();
+        $laporanKasKeluar = $query->getResultArray();
+
+
+
+        //Menghitung Total Penjualan Pada Tanggal Tersebut
+        $db      = \Config\Database::connect();
+        $builder = $db->table('kas_keluar');
+        $builder->select('SUM(nominal) as totalnominal');
+        $builder->where('tanggal >=', $tanggalAwal);
+        $builder->where('tanggal <=', $tanggalAkhir);
+        $query = $builder->get();
+        $hasil = $query->getRowArray();
+        $totalNominal = $hasil['totalnominal'];
+
+        if ($laporanKasKeluar) {
+
+            //Jika ada datanya maka cetak pdf nya
+            $data = [
+                'laporan' => $laporanKasKeluar,
+                'tanggalawal' => $tanggalAwal,
+                'tanggalakhir' => $tanggalAkhir,
+                'total_nominal' => $totalNominal
+            ];
+            $html = view('master/laporanKasKeluar', $data);
+
+            //$pdf = new TCPDF('P', 'mm', array('58', '30'), true, 'UTF-8', false);
+            //$pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+
+            $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+            //Informasi Dokumen
+            $pdf->SetCreator(PDF_CREATOR);
+            $pdf->SetAuthor('Aqil Mustaqim');
+            $pdf->SetTitle('Laporan Penjualan');
+            $pdf->SetSubject('Laporan Penjualan');
+
+            //Header Dan Footer Data
+            //$pdf->setHeaderData('/assets/images/1.jpg', 1, 'PosCafe', 'JL. Gaperta No 433', array(48, 89, 112), array(48, 89, 112));
+            //$pdf->setFooterData(array(0, 0, 0), array(0, 0, 0));
+            //$pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+            //$pdf->setFooterFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+
+            //$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+            //Set Margin
+            //$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+            //$pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+            //$pdf->setFooterMargin(PDF_MARGIN_FOOTER);
+
+            //Baris Baru
+            //$pdf->SetAutoPageBreak(true, PDF_MARGIN_BOTTOM);
+
+            //Set Scaling Image
+            //$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+
+            //Font Subsetting
+            //$pdf->setFontSubsetting(true);
+
+            //Font Utama
+            //$pdf->SetFont('helvetica', '', 12, '', true);
+
+            $pdf->addPage();
+
+            // output the HTML content
+            //$pdf->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+
+            $pdf->writeHTML($html, true, false, true, false, '');
+            //$pdf->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+            //$pdf->writeHTML($html, true, false, true, false, '');
+            //line ini penting
+            $this->response->setContentType('application/pdf');
+            //Close and output PDF document
+            $pdf->Output('laporan-kas-keluar.pdf', 'I');
+        } else {
+            //Jika data nya gak ada kirimkan pesan kosong
+            echo "Gak Ada Laporan qil";
         }
     }
 }
