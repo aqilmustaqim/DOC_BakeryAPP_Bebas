@@ -119,43 +119,11 @@
                         //Jika Sukses
                         if (response == 'berhasil') {
                             Swal.fire({
-                                title: 'Cetak Struk ?',
-                                text: "Apakah Yakin Mau Di Cetak ? ",
-                                icon: 'warning',
-                                showCancelButton: true,
-                                confirmButtonColor: '#3085d6',
-                                cancelButtonColor: '#d33',
-                                confirmButtonText: 'Ya, cetak !'
+                                title: 'Penjualan',
+                                text: "Berhasil Melakukan Transaksi",
+                                icon: 'success'
                             }).then((result) => {
                                 if (result.isConfirmed) {
-                                    //Redirect Ke Print Struk Jika Tidak Ingin Langsung Redirect
-                                    //window.location = "/penjualan/print";
-
-                                    //Jika Ingin Langsung Redirect Pakai Ajax 
-                                    $.ajax({
-                                        type: "post",
-                                        url: "/penjualan/struk",
-                                        data: {
-                                            invoice: $('#strukinvoice').val(),
-                                            kasir: $('#strukkasir').val(),
-                                            totalPembayaran: $('#total_pembayaran').val(),
-                                            jumlahUang: $('#jumlah_uang').val(),
-                                            sisaUang: $('#sisa_uang').val()
-                                        },
-                                        success: function(response) {
-                                            //Kalau Berhasil
-                                            Swal.fire({
-                                                title: 'Invoice' + $('#strukinvoice').val(),
-                                                text: response,
-                                                icon: 'success'
-                                            }).then((result) => {
-                                                window.location.reload();
-                                            })
-
-
-                                        }
-                                    });
-                                } else {
                                     window.location.reload();
                                 }
                             })

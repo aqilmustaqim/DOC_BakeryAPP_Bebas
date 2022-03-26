@@ -94,4 +94,94 @@ class Users extends BaseController
             return redirect()->to(base_url('users'));
         }
     }
+
+    public function profile()
+    {
+
+        if (!session()->has('logged_in')) {
+            session()->setFlashdata('login', 'Silahkan Login Terlebih Dahulu !');
+            return redirect()->to(base_url());
+        }
+        $user = $this->usersModel->where(['username' => session()->get('username')])->first();
+
+        $data = [
+            'title' => 'BakeryAPP || Profile',
+            'users' => $user,
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('users/profile', $data);
+    }
+
+    public function updateProfile()
+    {
+        //Tangkap Data Ajax
+        $id = $this->request->getVar('id');
+        $nama = $this->request->getVar('nama');
+        $username = $this->request->getVar('username');
+        $email = $this->request->getVar('email');
+        $hint = $this->request->getVar('hint');
+
+        //Update Database
+        if ($this->usersModel->save([
+            'id' => $id,
+            'nama' => $nama,
+            'username' => $username,
+            'email' => $email,
+            'hint' => $hint
+        ])) {
+            echo "1";
+        } else {
+            echo 'Gagal Edit Profile';
+        }
+    }
+
+    public function changePassword($id)
+    {
+        //Validasi Form
+        if (!$this->validate([
+            'password_lama' => [
+                'rules' => 'required',
+                'errors' => [
+                    'required' => '{field} Wajib Diisi ! '
+                ]
+            ],
+            'password_baru' => [
+                'rules' => 'required|matches[konfirmasi_password_baru]',
+                'errors' => [
+                    'required' => '{field} Wajib Diisi ! ',
+                    'matches' => '{field} harus sama dengan konfirmasi password baru'
+                ]
+            ],
+            'konfirmasi_password_baru' => [
+                'rules' => 'required|matches[password_baru]',
+                'errors' => [
+                    'required' => '{field} Wajib Diisi ! ',
+                    'matches' => '{field} harus sama dengan password baru'
+                ]
+            ]
+        ])) {
+            //Jika gagal validasi
+            return redirect()->to(base_url('users/profile'))->withInput();
+        }
+
+        //Jika Berhasil
+        //Cek password Lamanya benar atau tidak
+        $user = $this->usersModel->where(['id' => $id])->first();
+        $passwordLama = password_verify($this->request->getVar('password_lama'), $user['password']);
+
+        if ($passwordLama) {
+            //Kalau password lama benar maka update password lama dengan password baru
+            if ($this->usersModel->save([
+                'id' => $id,
+                'password' => password_hash($this->request->getVar('password_baru'), PASSWORD_DEFAULT)
+            ])) {
+
+                return redirect()->to(base_url('auth/logout'));
+            }
+        } else {
+            session()->setFlashdata('profile', 'Password Lama Anda Salah ! ');
+            return redirect()->to(base_url('users/profile'));
+        }
+    }
 }
