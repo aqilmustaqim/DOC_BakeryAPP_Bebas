@@ -185,4 +185,65 @@ class Master extends BaseController
 
         return view('master/formProduk', $data);
     }
+
+    public function tambahProduk()
+    {
+        //Validasi Field Dlu
+        if (!$this->validate([
+            'kode_produk' => [
+                'rules' => 'required|is_unique[produk.kode_produk]',
+                'errors' => [
+                    'required' => '{field} Wajib Diisi ! ',
+                    'is_unique' => '{field} Sudah Dipakai'
+                ]
+            ],
+            'modal_produk' => [
+                'rules' => 'required',
+                'errors' => [
+                    'required' => '{field} Wajib Diisi ! '
+                ]
+            ],
+            'harga_produk' => [
+                'rules' => 'required',
+                'errors' => [
+                    'required' => '{field} Wajib Diisi ! '
+                ]
+            ],
+            'foto_produk' => [
+                'rules' => 'uploaded[foto_produk]|mime_in[foto_produk,image/jpg,image/jpeg,image/png]|is_image[foto_produk]',
+                'errors' => [
+                    'uploaded' => '{field} Wajib Diisi ! ',
+                    'mime_in' => 'Yang Anda Pilih Bukan Gambar ! ',
+                    'is_image' => 'Yang Anda Pilih Bukan Gambar ! '
+                ]
+            ],
+        ])) {
+            //Kalau Gak Lulus Validasi
+            return redirect()->to(base_url('master/formProduk'))->withInput();
+        }
+        //Kalau Sudah Lolos Validasi
+        //1. Masukkan File foto Ke Dalam Folder
+        $fileFoto = $this->request->getFile('foto_produk');
+        //Ambil Namanya
+        $namaFileFoto = $fileFoto->getRandomName();
+        //Masukkan Ke Folder
+        $fileFoto->move('assets/images/product', $namaFileFoto);
+
+        //2. Masukkan Data Ke Dalam Database
+        if ($this->produkModel->save([
+            'kode_produk' => $this->request->getVar('kode_produk'),
+            'nama_produk' => $this->request->getVar('nama_produk'),
+            'satuan_produk' => $this->request->getVar('satuan_produk'),
+            'kategori_produk' => $this->request->getVar('kategori_produk'),
+            'modal_produk' => str_replace(',', '', $this->request->getVar('modal_produk')),
+            'harga_produk' => str_replace(',', '', $this->request->getVar('harga_produk')),
+            'stok_produk' => $this->request->getVar('stok_produk'),
+            'keterangan_produk' => $this->request->getVar('keterangan_produk'),
+            'foto_produk' => $namaFileFoto
+        ])) {
+            //Kalau Berhail
+            session()->setFlashdata('produk', 'Ditambahkan');
+            return redirect()->to(base_url('master/formProduk'));
+        }
+    }
 }
