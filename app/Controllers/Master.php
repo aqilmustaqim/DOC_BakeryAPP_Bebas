@@ -246,4 +246,113 @@ class Master extends BaseController
             return redirect()->to(base_url('master/formProduk'));
         }
     }
+
+    public function editProduk($id)
+    {
+        if (!session()->has('logged_in')) {
+            session()->setFlashdata('login', 'Silahkan Login Terlebih Dahulu !');
+            return redirect()->to(base_url());
+        } else {
+            if (session()->get('role_id') != 1) {
+                return redirect()->to(base_url('kasir'));
+            }
+        }
+
+        $produk = $this->produkModel->where(['id' => $id])->first();
+        $satuan = $this->satuanModel->findAll();
+        $kategori = $this->kategoriModel->findAll();
+
+
+        $data = [
+            'title' => 'PosCafe || Form Produk',
+            'validation' => \Config\Services::validation(),
+            'kategori' => $kategori,
+            'satuan' => $satuan,
+            'produk' => $produk
+        ];
+
+        return view('master/editProduk', $data);
+    }
+
+    public function updateProduk($id)
+    {
+        //Validasi Field Dlu
+        if (!$this->validate([
+            'nama_produk' => [
+                'rules' => 'required',
+                'errors' => [
+                    'required' => '{field} Wajib Diisi ! '
+                ]
+            ],
+            'modal_produk' => [
+                'rules' => 'required',
+                'errors' => [
+                    'required' => '{field} Wajib Diisi ! '
+                ]
+            ],
+            'harga_produk' => [
+                'rules' => 'required',
+                'errors' => [
+                    'required' => '{field} Wajib Diisi ! '
+                ]
+            ],
+            'foto_produk' => [
+                'rules' => 'mime_in[foto_produk,image/jpg,image/jpeg,image/png]|is_image[foto_produk]',
+                'errors' => [
+                    'mime_in' => 'Yang Anda Pilih Bukan Gambar ! ',
+                    'is_image' => 'Yang Anda Pilih Bukan Gambar ! '
+                ]
+            ],
+        ])) {
+            //Kalau Gak Lulus Validasi
+            return redirect()->to(base_url("master/editProduk/$id"))->withInput();
+        }
+
+        //Kalau Lolos Validasi
+        //1. Cek Foto Di Ubah Atau Tidak
+        $fileFoto = $this->request->getFile('foto_produk');
+        $fotoLama = $this->request->getVar('fotoLama');
+        if ($fileFoto->getError() == 4) {
+            //Ambil Nama Foto Lamanya
+            $namaFoto = $fotoLama;
+        } else {
+            //Kalau Foto Nya Diubah
+            //Ambil Nama File Foto Barunya
+            $namaFoto = $fileFoto->getRandomName();
+            //Masukkan Ke Dalam Folder Image
+            $fileFoto->move('assets/images/product', $namaFoto);
+            //Hapus File Foto Lama
+            unlink("assets/images/product/$fotoLama");
+        }
+        //Update Data Di Database
+        if ($this->produkModel->save([
+            'id' => $id,
+            'nama_produk' => $this->request->getVar('nama_produk'),
+            'satuan_produk' => $this->request->getVar('satuan_produk'),
+            'kategori_produk' => $this->request->getVar('kategori_produk'),
+            'modal_produk' => str_replace(',', '', $this->request->getVar('modal_produk')),
+            'harga_produk' => str_replace(',', '', $this->request->getVar('harga_produk')),
+            'stok_produk' => $this->request->getVar('stok_produk'),
+            'keterangan_produk' => $this->request->getVar('keterangan_produk'),
+            'foto_produk' => $namaFoto
+        ])) {
+            session()->setFlashdata('produk', 'DiUbah');
+            return redirect()->to(base_url('master/produk'));
+        }
+    }
+
+    public function hapusProduk($id)
+    {
+
+        //Ambil Data Produk Berdasarkan Id Yang mau dihapus
+        $dataProduk = $this->produkModel->where(['id' => $id])->first();
+        $foto = $dataProduk['foto_produk'];
+        //Langsung Hapus Datanya
+        if ($this->produkModel->delete($id)) {
+            //Hapus Juga Gambar Yang Ada Di Folder
+            unlink("assets/images/product/$foto");
+
+            return redirect()->to(base_url('master/produk'));
+        }
+    }
 }
